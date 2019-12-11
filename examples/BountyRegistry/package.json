@@ -1,0 +1,13 @@
+{
+  "name": "bounty-registry",
+  "version": "1.0.0",
+  "description": "Bounty registry methods",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo no tests yet",
+    "start": "node index.js"
+  },
+  "keywords": [
+    "example"
+  ]
+}

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js">
+<!--<![endif]-->
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="">
+    <script src="./js/secBuzzer.js"></script>
+    <script>
+      const erc20Addr = '0x810582f49676917d8b86fcc551ae3f964ece2c91';
+      const erc20RelayAddr = '0xb37de44b76ce18f38613a8ee629b36c5b4a123bf';
+      const bountyRegistryAddr = '0xc11fbecab67ccd70afe46152f2e86ac6c55a0fe0';
+
+      const ownerAddress = '0x37821F1CfeCC7766d659C7459C8e8a444D690359';
+      const userAddress = '0x653a042D3FE80B779C2FaF3b9f54B7496CbC589c';
+      const expertAddress = '0x972886Fd73Ef5eBce1b37CeE7DD7D828f6C099d7';
+      const arbiterAddress = '0x0D30D005F1CF80C113fD28dd4b5B97070f8DAD07';
+      const managerAddress = '0xa69fa5f12865C9B2180B620251ddB9dC8A5B6bA4';
+      const walletAddress = '0x550E294b6E27d4b598CEB64CFCF18835767805C7';
+      // require library
+      var SecBuzzer = require('SecBuzzer');
+      
+      // initial SecBuzzer with configuration
+      var secBuzzer = new SecBuzzer.default({
+        restURL: `https://ropsten.infura.io`, // Set provider endpoint
+        secBuzzerTokenAddress: erc20Addr // set contract address
+      });
+
+      let currentAddress = '';
+      let currentNetwork = '';
+      // METAMASK
+      window.addEventListener('load', async function() {
+        // Checking if Web3 has been injected by the browser (Mist/MetaMask)
+        if (window.ethereum) {
+          window.web3 = new Web3(ethereum);
+          try {
+            // Request account access if needed
+            await ethereum.enable();
+            // Acccounts now exposed
+
+            currentAddress = ethereum.selectedAddress;
+            currentNetwork = ethereum.networkVersion;
+
+            console.log(currentAddress, currentNetwork);
+            
+            document.getElementById("account").textContent = currentAddress;
+            document.getElementById("network").textContent = currentNetwork;
+
+            getAllBalance();
+          } catch (error) {
+            // User denied account access...
+            console.log(error);
+          }
+        } else if (window.web3) { // Legacy dapp browsers...
+          window.web3 = new Web3(web3.currentProvider);
+          // Acccounts always exposed
+          //currentAddress = web3.eth.defaultAccount;
+          if (web3.currentProvider.isMetaMask) {
+            alert('Please upgrade to the newest version of MetaMask or your account will exposed');
+          } else {
+            alert('Please install MetaMask');
+          }
+        } else {
+          console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+        }
+      });
+
+      window.ethereum.on('accountsChanged', function (accounts) {
+        // Time to reload your interface with accounts[0]!
+        console.log('change account', accounts[0]);
+        currentAddress = accounts[0];
+        document.getElementById("account").textContent = accounts[0];
+      });
+
+      window.ethereum.on('networkChanged', function(network) {
+        console.log('change network', network);
+        document.getElementById("network").textContent = network;
+      })
+
+      function transfer() {
+        var byteCode = secBuzzer.BountyRegistry.transfer(managerAddress, '1');
+        web3.eth.sendTransaction({
+          from: currentAddress,
+          to: bountyRegistryAddr,
+          data: byteCode,
+          value: '0'
+        }, function(err, transactionHash) {
+          if (!err) {
+            document.getElementById('msg').textContent = 'Transaction hash:' + transactionHash; 
+          } else {
+            document.getElementById('msg').textContent = err.message;
+          }
+        });
+      }
+
+      async function getAllBalance() {
+        // owner
+        const ownerBalance = await secBuzzer.SecBuzzerToken.balanceOf(ownerAddress);
+        document.getElementById('ownerAddress').textContent = ownerAddress;
+        document.getElementById('ownerBalance').textContent = ownerBalance;
+        // manager
+        document.getElementById('managerAddress').textContent = managerAddress;
+      }
+
+      async function isManager() {
+        var address = document.getElementById('checkManager').value;
+        const isManager = await secBuzzer.BountyRegistry.isManager(address);
+        document.getElementById('isManager').textContent = isManager;
+      }
+
+      async function isArbiter() {
+        var address = document.getElementById('checkArbiter').value;
+        const isArbiter = await secBuzzer.BountyRegistry.isArbiter(address);
+        document.getElementById('isArbiter').textContent = isArbiter;
+      }
+
+      function updateWallet() {
+        var byteCode = secBuzzer.BountyRegistry.updateWallet(walletAddress);
+        web3.eth.sendTransaction({
+          from: currentAddress,
+          to: bountyRegistryAddr,
+          data: byteCode,
+          value: '0'
+        }, function(err, transactionHash) {
+          if (!err) {
+            document.getElementById('msg').textContent = 'Transaction hash:' + transactionHash; 
+          } else {
+            document.getElementById('msg').textContent = err.message;
+          }
+        });
+      }
+
+      function transfer() {
+        var address = document.getElementById('address').value;
+        var amount = document.getElementById('amount').value;
+        var byteCode = secBuzzer.BountyRegistry.transfer(address, amount);
+        web3.eth.sendTransaction({
+          from: currentAddress,
+          to: bountyRegistryAddr,
+          data: byteCode,
+          value: '0'
+        }, function(err, transactionHash) {
+          if (!err) {
+            document.getElementById('msg').textContent = 'Transaction hash:' + transactionHash; 
+          } else {
+            document.getElementById('msg').textContent = err.message;
+          }
+        });
+      }
+
+      function addManager() {
+        var address = document.getElementById('addManager').value;
+        var byteCode = secBuzzer.BountyRegistry.addManager(address);
+        web3.eth.sendTransaction({
+          from: currentAddress,
+          to: bountyRegistryAddr,
+          data: byteCode,
+          value: '0'
+        }, function(err, transactionHash) {
+          if (!err) {
+            document.getElementById('msg').textContent = 'Transaction hash:' + transactionHash; 
+          } else {
+            document.getElementById('msg').textContent = err.message;
+          }
+        });
+      }
+
+      function addArbiter() {
+        var address = document.getElementById('addArbiter').value;
+        var byteCode = secBuzzer.BountyRegistry.addArbiter(address);
+        web3.eth.sendTransaction({
+          from: currentAddress,
+          to: bountyRegistryAddr,
+          data: byteCode,
+          value: '0'
+        }, function(err, transactionHash) {
+          if (!err) {
+            document.getElementById('msg').textContent = 'Transaction hash:' + transactionHash; 
+          } else {
+            document.getElementById('msg').textContent = err.message;
+          }
+        });
+      }
+
+      function removeManager() {
+        var address = document.getElementById('removeManager').value;
+        var byteCode = secBuzzer.BountyRegistry.removeManager(address);
+        web3.eth.sendTransaction({
+          from: currentAddress,
+          to: bountyRegistryAddr,
+          data: byteCode,
+          value: '0'
+        }, function(err, transactionHash) {
+          if (!err) {
+            document.getElementById('msg').textContent = 'Transaction hash:' + transactionHash; 
+          } else {
+            document.getElementById('msg').textContent = err.message;
+          }
+        });
+      }
+
+      function removeArbiter() {
+        var address = document.getElementById('removeArbiter').value;
+        var byteCode = secBuzzer.BountyRegistry.removeArbiter(address);
+        web3.eth.sendTransaction({
+          from: currentAddress,
+          to: bountyRegistryAddr,
+          data: byteCode,
+          value: '0'
+        }, function(err, transactionHash) {
+          if (!err) {
+            document.getElementById('msg').textContent = 'Transaction hash:' + transactionHash; 
+          } else {
+            document.getElementById('msg').textContent = err.message;
+          }
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <!--[if lt IE 7]>
+      <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->
+    <div id="msg"></div>
+    <div>Network ID: <span id="network"></span></div>
+    <div>Account: <span id="account"></span></div>
+    <hr/>
+    <div>Owner Address: <span id="ownerAddress"></span>&nbsp;Balance: <span id="ownerBalance"></span></div>
+    <div>Manager Address: <span id="managerAddress"></span></div>
+    <hr/>
+    <h2>Manager Check</h2>
+    <div>
+      <span>Address: </span>
+      <span>
+        <input id="checkManager" name="checkManager" value="0xa69fa5f12865C9B2180B620251ddB9dC8A5B6bA4"/>
+      </span>
+      <button onclick="isManager()">Check Manager</button>
+      <div>
+        Result: <span id="isManager"></span>
+      </div>
+    </div>
+    <hr/>
+    <h2>Arbiter Check</h2>
+    <div>
+      <span>Address: </span>
+      <span>
+        <input id="checkArbiter" name="checkArbiter" value="0xa69fa5f12865C9B2180B620251ddB9dC8A5B6bA4"/>
+      </span>
+      <button onclick="isArbiter()">Check Arbiter</button>
+      <div>
+        Result: <span id="isArbiter"></span>
+      </div>
+    </div>
+    <hr/>
+    <h2>Update Wallet Address</h2>
+    <div>
+      <span>Current Wallet Address: </span>
+      <span id="wallet"></span>
+    </div>
+    <div>
+      <button onclick="updateWallet()">Update Wallet Address</button>
+    </div>
+    <hr/>
+    <h2>Transfer wallet token</h2>
+    <div>
+      <span>Address: </span>
+      <span>
+        <input id="address" name="address" value=""/>
+      </span>
+    </div>
+    <div>
+      <span>Amount: </span>
+      <span><input id="amount" value="1"/></span>
+    </div>
+    <div>
+      <button onclick="transfer()">Transfer Wallet Token</button>
+    </div>
+    <hr/>
+    <h2>Add Arbiter</h2>
+    <div>
+      <span>New Arbiter Address: <input id="addArbiter" value=""/></span>
+    </div>
+    <div>
+      <button onclick="addArbiter()">Add Arbiter</button>
+    </div>
+    <hr/>
+    <h2>Add Manager</h2>
+    <div>
+      <span>New Manager Address: <input id="addManager" value=""/></span>
+    </div>
+    <div>
+      <button onclick="addManager()">Add Manager</button>
+    </div>
+    <hr/>
+    <h2>Remove Arbiter</h2>
+    <div>
+      <span>Arbiter Address: <input id="removeArbiter" value=""/></span>
+    </div>
+    <div>
+      <button onclick="removeArbiter()">Remove Arbiter</button>
+    </div>
+    <hr/>
+    <h2>Remove Manager</h2>
+    <div>
+      <span>Manager Address: <input id="removeManager" value=""/></span>
+    </div>
+    <div>
+      <button onclick="removeManager()">Remove Manager</button>
+    </div>
+  </body>
+</html>

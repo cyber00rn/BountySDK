@@ -1,0 +1,45 @@
+<html>
+  <head>
+    <script src="../../dist/secBuzzer.js"></script>
+    <script>
+      // require library
+      var SecBuzzer = require('SecBuzzer');
+      
+      // initial SecBuzzer with configuration
+      var secBuzzer = new SecBuzzer.default({
+        restURL: `https://ropsten.infura.io`, // Set provider endpoint
+        secBuzzerTokenAddress: `0x810582f49676917d8b86fcc551ae3f964ece2c91` // set contract address
+      });
+      secBuzzer.SecBuzzerToken.name().then(function(name) {
+        document.getElementById("name").innerText = name;
+      });
+      secBuzzer.SecBuzzerToken.symbol().then(function(symbol) {
+        document.getElementById("symbol").innerHTML = symbol;
+      });
+      secBuzzer.SecBuzzerToken.decimals().then(function(decimals) {
+        document.getElementById("decimals").innerHTML = decimals;
+      });
+      secBuzzer.SecBuzzerToken.totalSupply().then(function(totalSupply) {
+        document.getElementById("totalSupply").innerHTML = totalSupply;
+      });
+    </script>
+  </head>
+  <body>
+    <div>
+      <span>Name: </span>
+      <span id="name"></span>
+    </div>
+    <div>
+      <span>Symbol: </span>
+      <span id="symbol"></span>
+    </div>
+    <div>
+      <span>Decimals: </span>
+      <span id="decimals"></span>
+    </div>
+    <div>
+      <span>Total Supply: </span>
+      <span id="totalSupply"></span>
+    </div>
+  </body>
+</html>

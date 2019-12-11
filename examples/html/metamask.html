@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js">
+<!--<![endif]-->
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="">
+    <script>
+      const erc20Addr = '0x810582f49676917d8b86fcc551ae3f964ece2c91';
+      const erc20RelayAddr = '0xb37de44b76ce18f38613a8ee629b36c5b4a123bf';
+      const bountyRegistryAddr = '0xc11fbecab67ccd70afe46152f2e86ac6c55a0fe0';
+
+      let currentAddress = '';
+      // METAMASK
+      window.addEventListener('load', async function() {
+        // Checking if Web3 has been injected by the browser (Mist/MetaMask)
+        if (window.ethereum) {
+          window.web3 = new Web3(ethereum);
+          try {
+            // Request account access if needed
+            await ethereum.enable();
+            // Acccounts now exposed
+
+            const network = ethereum.networkVersion;
+            currentAddress = ethereum.selectedAddress;
+          } catch (error) {
+            // User denied account access...
+            console.log(error);
+          }
+        } else if (window.web3) { // Legacy dapp browsers...
+          window.web3 = new Web3(web3.currentProvider);
+          // Acccounts always exposed
+          //currentAddress = web3.eth.defaultAccount;
+          if (web3.currentProvider.isMetaMask) {
+            alert('Please upgrade to the newest version of MetaMask or your account will exposed');
+          } else {
+            alert('Please install MetaMask');
+          }
+        } else {
+          console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+        }
+      });
+
+      window.ethereum.on('accountsChanged', function (accounts) {
+        // Time to reload your interface with accounts[0]!
+        console.log('change account', accounts[0]);
+        currentAddress = accounts[0];
+        document.getElementById("account").textContent = accounts[0];
+      });
+
+      window.ethereum.on('networkChanged', function(network) {
+        console.log('change network', network);
+        document.getElementById("network").textContent = network;
+      })
+
+      function sendTransaction() {
+        var address = document.getElementById("address").value;
+        var amount = document.getElementById("amount").value;
+        web3.eth.sendTransaction({
+          from: currentAddress,
+          to: address,
+          data: '',
+          value: web3.toWei(amount, 'ether')
+        }, function(err, transactionHash) {
+          if (!err) {
+            document.getElementById('msg').textContent = 'Transaction hash:' + transactionHash; 
+          } else {
+            document.getElementById('msg').textContent = 'Something error';
+          }
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <!--[if lt IE 7]>
+      <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->
+    <div id="msg"></div>
+    <div>Network ID: <span id="network"></span></div>
+    <div>Account: <span id="account"></span></div>
+    <hr/>
+    <div>
+      <span>Address: </span>
+      <span>
+        <input id="address" name="address" value="0x1a8B24BfEC62753aE55117e56953cb99aE904C2d"/>
+      </span>
+    </div>
+    <div>
+      <span>Amount: </span>
+      <span>
+        <input id="amount" name="amount" value="10"/>
+      </span>
+    </div>
+    <div>
+      <button onclick="sendTransaction()">Transfer Ether</button>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+nav { padding-bottom: 20px; }
+
+table tbody tr:nth-child(even) {
+    background-color: #eee;
+}
+
+table.params.th-border th, table.params.th-border td {
+    border: 2px solid #ccc;
+}
+
+/**
+ * readme files
+ */
+.readme h2 {
+    border-bottom: 1px solid #e3e3e3;
+}
